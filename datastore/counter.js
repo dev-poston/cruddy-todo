@@ -42,11 +42,6 @@ exports.getNextUniqueId = (callback) => {
   readCounter((error, data) => {
     writeCounter(data + 1, callback);
   });
-
-  // counter = readCounter();
-  // counter = counter + 1;
-  // return zeroPaddedNumber(counter);
-
 };
 
 
