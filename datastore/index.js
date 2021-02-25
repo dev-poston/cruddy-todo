@@ -38,7 +38,6 @@ exports.readAll = (callback) => {
 };
 
 exports.readOne = (id, callback) => {
-
   fs.readFile(`${exports.dataDir}/${id}.txt`, (error, res) => {
     if (error) {
       console.log('no mon, no fun, yo son: no matching id');
@@ -51,13 +50,22 @@ exports.readOne = (id, callback) => {
 };
 
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+  //Read file
+  fs.readFile(`${exports.dataDir}/${id}.txt`, (error, data) => {
+    if (error) {
+      console.log('Do not pass go');
+      callback(error);
+    } else {
+      fs.writeFile(`${exports.dataDir}/${id}.txt`, text, (error, data) => {
+        if (error) {
+          console.log('Write file failed');
+          callback(error);
+        } else {
+          callback(null, { id: id, text: text });
+        }
+      });
+    }
+  });
 };
 
 exports.delete = (id, callback) => {
