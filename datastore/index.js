@@ -24,6 +24,7 @@ exports.readAll = (callback) => {
   let results = [];
   fs.readdir(exports.dataDir, (err, data) => {
     if (err) {
+      callback(err);
     } else {
       for (let i = 0; i < data.length; i++) {
         results.push({
@@ -37,37 +38,16 @@ exports.readAll = (callback) => {
 };
 
 exports.readOne = (id, callback) => {
-  exports.readAll((err, data) => {
-    if (err) {
-      console.log('too bad, so sad, did not read one file');
-      callback(err);
+
+  fs.readFile(`${exports.dataDir}/${id}.txt`, (error, res) => {
+    if (error) {
+      console.log('no mon, no fun, yo son: no matching id');
+      callback(error);
     } else {
-      //Need to check for data[i] being undefined
-      for (var i = 0; i < data.length; i++) {
-        // if (!data[i]) do something
-        if (id === data[i].slice(0, 5)) {
-          fs.readFile(`${exports.dataDir}/${id}.txt`, (error, res) => {
-            if (error) {
-              console.log('no mon, no fun, yo son: no matching id');
-              callback(error);
-            } else {
-              callback(null, res);
-            }
-          });
-        }
-      }
+      callback(null, { id: id, text: res.toString()});
     }
   });
 
-
-
-
-  // var text = items[id];
-  // if (!text) {
-  //   callback(new Error(`No item with id: ${id}`));
-  // } else {
-  //   callback(null, { id, text });
-  // }
 };
 
 exports.update = (id, text, callback) => {
