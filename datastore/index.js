@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
-
+const Promise = require('bluebird');
+const FS = Promise.promisifyAll(fs);
 var items = {};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
@@ -21,20 +22,23 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  let results = [];
-  fs.readdir(exports.dataDir, (err, data) => {
-    if (err) {
-      callback(err);
-    } else {
-      for (let i = 0; i < data.length; i++) {
-        results.push({
-          id: data[i].slice(0, 5),
-          text: data[i].slice(0, 5)
+  return FS.readdirAsync(exports.dataDir)
+    .then((files) => {
+      let newArray = files.map((file) => {
+        let id = file.slice(0, 5);
+        return FS.readFileAsync(`${exports.dataDir}/${id}.txt`)
+          .then((data) => {
+            return { id: id, text: data.toString() };
+          });
+      });
+      Promise.all(newArray)
+        .then((newArray) => {
+          callback(null, newArray);
         });
-      }
-      callback(null, results);
-    }
-  });
+    })
+    .catch( (error) => {
+      callback(error);
+    });
 };
 
 exports.readOne = (id, callback) => {
@@ -46,11 +50,9 @@ exports.readOne = (id, callback) => {
       callback(null, { id: id, text: res.toString()});
     }
   });
-
 };
 
 exports.update = (id, text, callback) => {
-  //Read file
   fs.readFile(`${exports.dataDir}/${id}.txt`, (error, data) => {
     if (error) {
       console.log('Do not pass go');
@@ -69,7 +71,6 @@ exports.update = (id, text, callback) => {
 };
 
 exports.delete = (id, callback) => {
-
   fs.unlink(`${exports.dataDir}/${id}.txt`, (err, data) => {
     if (err) {
       console.log('no dice, try again');
@@ -78,7 +79,6 @@ exports.delete = (id, callback) => {
       callback(null, data);
     }
   });
-
 };
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
